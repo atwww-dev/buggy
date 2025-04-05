@@ -183,7 +183,7 @@
         <h3>Client-side Setup</h3>
         <p>Add the following to your HTML file:</p>
         <pre><code>&lt;script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"&gt;&lt;/script&gt;
-&lt;script src="path/to/buggy.js"&gt;&lt;/script&gt;
+&lt;script src="https://cdn.jsdelivr.net/gh/yourusername/buggy@main/client/src/buggy.js"&gt;&lt;/script&gt;
 &lt;script&gt;
   new Buggy({
     apiUrl: 'http://your-server:3000/api/feedback',
@@ -191,6 +191,10 @@
     buttonPosition: 'bottom-right'
   });
 &lt;/script&gt;</code></pre>
+
+        <div class="note">
+            <p>Replace <code>yourusername</code> with your GitHub username and <code>main</code> with your branch name if different. You can also use specific version tags instead of branch names for better version control.</p>
+        </div>
 
         <h3>Server-side Setup</h3>
         <p>1. Install dependencies:</p>
@@ -285,6 +289,51 @@ TRELLO_LIST_ID=your_list_id_here</code></pre>
             <li>Submit feature requests</li>
             <li>Create pull requests</li>
         </ul>
+    </div>
+
+    <div class="section">
+        <h2>CDN Usage</h2>
+        <p>Buggy can be loaded directly from jsDelivr CDN, which provides several benefits:</p>
+        <ul class="feature-list">
+            <li>Fast loading times worldwide</li>
+            <li>Automatic caching and compression</li>
+            <li>No need to host the script yourself</li>
+            <li>Version control support</li>
+        </ul>
+
+        <h3>Versioning Options</h3>
+        <p>You can load Buggy in different ways using jsDelivr:</p>
+
+        <div class="example">
+            <h4>Latest Version (from main branch)</h4>
+            <pre><code>&lt;script src="https://cdn.jsdelivr.net/gh/yourusername/buggy@main/client/src/buggy.js"&gt;&lt;/script&gt;</code></pre>
+        </div>
+
+        <div class="example">
+            <h4>Specific Version (using tags)</h4>
+            <pre><code>&lt;script src="https://cdn.jsdelivr.net/gh/yourusername/buggy@v1.0.0/client/src/buggy.js"&gt;&lt;/script&gt;</code></pre>
+        </div>
+
+        <div class="example">
+            <h4>Minified Version (recommended for production)</h4>
+            <pre><code>&lt;script src="https://cdn.jsdelivr.net/gh/yourusername/buggy@main/client/dist/buggy.min.js"&gt;&lt;/script&gt;</code></pre>
+        </div>
+
+        <div class="note">
+            <p>For production use, it's recommended to use minified versions and specific version tags instead of branch names to ensure stability.</p>
+        </div>
+
+        <h3>Creating Minified Version</h3>
+        <p>To create a minified version of Buggy:</p>
+        <pre><code># Install terser
+npm install -g terser
+
+# Minify the script
+terser client/src/buggy.js -o client/dist/buggy.min.js --compress --mangle</code></pre>
+
+        <div class="warning">
+            <p>Always test the minified version before deploying to production to ensure all functionality works as expected.</p>
+        </div>
     </div>
 </body>
 </html> 
