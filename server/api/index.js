@@ -61,7 +61,7 @@ ${steps}
       }
     );
 
-    res.json({ success: true, cardId: card.id });
+    res.json({ success: true });
   } catch (error) {
     console.error('Error creating Trello card:', error);
     res.status(500).json({ success: false, error: error.message });
