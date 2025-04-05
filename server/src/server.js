@@ -24,6 +24,10 @@ app.use(express.json());
 // Handle preflight requests
 app.options('/api/feedback', cors(corsOptions));
 
+app.get('/api/feedback', cors(corsOptions), async (req, res) => {
+  res.json({ message: 'Hello, world!' });
+});
+
 // Routes
 app.post('/api/feedback', cors(corsOptions), async (req, res) => {
   try {

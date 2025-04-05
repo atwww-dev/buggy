@@ -499,210 +499,130 @@ class Buggy {
   addStyles() {
     const style = document.createElement('style');
     style.textContent = `
-      .buggy-button {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background: #000000;
-        color: white;
-        border: none;
-        border-radius: 50px;
-        padding: 12px 24px;
-        font-size: 14px;
-        font-weight: 500;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        transition: all 0.3s ease;
-        z-index: 9999;
-      }
-
-      .buggy-button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(0,0,0,0.15);
-      }
-
-      .buggy-modal {
-        display: none;
+      .buggy-container {
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0,0,0,0.8);
-        justify-content: center;
-        align-items: center;
-        z-index: 10000;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 999999;
+        display: none;
       }
-
-      .buggy-modal-content {
-        background: white;
-        border-radius: 12px;
+      .buggy-modal {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: #ffffff;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         width: 90%;
-        max-width: 800px;
+        max-width: 500px;
         max-height: 90vh;
         overflow-y: auto;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.2);
       }
-
-      .buggy-modal-header {
-        padding: 24px;
-        border-bottom: 1px solid #e0e0e0;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-
-      .buggy-close {
-        background: none;
-        border: none;
-        font-size: 24px;
-        cursor: pointer;
-        color: #333;
-        transition: color 0.3s ease;
-      }
-
-      .buggy-close:hover {
-        color: #000;
-      }
-
-      .buggy-modal-body {
-        padding: 24px;
-      }
-
       .buggy-screenshot-container {
-        margin-bottom: 24px;
-        border: 1px solid #e0e0e0;
-        border-radius: 8px;
+        margin: 1rem 0;
+        border: 1px solid #e5e7eb;
+        border-radius: 4px;
         overflow: hidden;
-        background: #f8f8f8;
       }
-
-      #buggy-canvas {
-        width: 100%;
-        height: auto;
+      .buggy-screenshot {
+        max-width: 100%;
         display: block;
       }
-
       .buggy-annotation-tools {
-        padding: 12px;
-        background: #f8f8f8;
         display: flex;
-        gap: 12px;
-        border-top: 1px solid #e0e0e0;
+        gap: 0.5rem;
+        margin: 1rem 0;
       }
-
-      .buggy-tool {
-        padding: 8px 16px;
-        border: 1px solid #e0e0e0;
-        border-radius: 6px;
-        background: white;
+      .buggy-tool-button {
+        padding: 0.5rem 1rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 4px;
+        background: #ffffff;
         cursor: pointer;
-        font-size: 14px;
-        font-weight: 500;
-        transition: all 0.3s ease;
+        transition: all 0.2s;
       }
-
-      .buggy-tool:hover {
-        background: #f0f0f0;
+      .buggy-tool-button:hover {
+        background: #f3f4f6;
       }
-
-      .buggy-tool.active {
-        background: #000;
-        color: white;
-        border-color: #000;
+      .buggy-tool-button.active {
+        background: #000000;
+        color: #ffffff;
+        border-color: #000000;
       }
-
       .buggy-form-group {
-        margin-bottom: 24px;
+        margin-bottom: 1rem;
       }
-
-      .buggy-form-group label {
+      .buggy-label {
         display: block;
-        margin-bottom: 8px;
+        margin-bottom: 0.5rem;
         font-weight: 500;
-        color: #333;
       }
-
-      .buggy-form-group input,
-      .buggy-form-group textarea,
-      .buggy-form-group select {
+      .buggy-input,
+      .buggy-textarea {
         width: 100%;
-        padding: 12px;
-        border: 1px solid #e0e0e0;
-        border-radius: 6px;
-        font-size: 14px;
-        transition: all 0.3s ease;
+        padding: 0.5rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 4px;
+        font-size: 1rem;
       }
-
-      .buggy-form-group input:focus,
-      .buggy-form-group textarea:focus,
-      .buggy-form-group select:focus {
-        outline: none;
-        border-color: #000;
-        box-shadow: 0 0 0 2px rgba(0,0,0,0.1);
+      .buggy-textarea {
+        min-height: 100px;
+        resize: vertical;
       }
-
-      .buggy-submit {
-        width: 100%;
-        padding: 14px;
-        background: #000;
-        color: white;
+      .buggy-button {
+        padding: 0.75rem 1.5rem;
         border: none;
-        border-radius: 6px;
-        font-size: 16px;
+        border-radius: 4px;
+        font-size: 1rem;
         font-weight: 500;
         cursor: pointer;
-        transition: all 0.3s ease;
+        transition: all 0.2s;
       }
-
+      .buggy-submit {
+        background: #000000;
+        color: #ffffff;
+      }
       .buggy-submit:hover {
-        background: #333;
+        background: #333333;
       }
-
+      .buggy-cancel {
+        background: #f3f4f6;
+        color: #000000;
+        margin-right: 1rem;
+      }
+      .buggy-cancel:hover {
+        background: #e5e7eb;
+      }
       .buggy-message {
         position: fixed;
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        padding: 16px 32px;
-        border-radius: 6px;
-        color: white;
-        font-weight: 500;
-        z-index: 10001;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        top: 1rem;
+        right: 1rem;
+        padding: 1rem;
+        border-radius: 4px;
+        color: #ffffff;
+        z-index: 1000000;
+        animation: slideIn 0.3s ease-out;
       }
-
-      .buggy-success {
-        background: #000;
+      .buggy-message.success {
+        background: #10b981;
       }
-
-      .buggy-error {
-        background: #333;
+      .buggy-message.error {
+        background: #ef4444;
       }
-
-      .buggy-canvas-container {
-        background: rgba(0,0,0,0.9);
-      }
-
-      .buggy-tool-button {
-        background: white;
-        border: 1px solid #e0e0e0;
-        color: #333;
-      }
-
-      .buggy-tool-button:hover {
-        background: #f0f0f0;
-      }
-
-      .buggy-color-button {
-        border: 2px solid transparent;
-      }
-
-      .buggy-color-button:hover {
-        border-color: #000;
+      @keyframes slideIn {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
       }
     `;
     document.head.appendChild(style);
