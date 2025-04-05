@@ -6,15 +6,26 @@ const Trello = require('trello');
 const app = express();
 const port = process.env.PORT || 3000;
 
+// CORS configuration
+const corsOptions = {
+  origin: ['http://localhost:3000', 'https://buggy-flame.vercel.app'],
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+};
+
 // Initialize Trello client
 const trello = new Trello(process.env.TRELLO_API_KEY, process.env.TRELLO_TOKEN);
 
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
+// Handle preflight requests
+app.options('/api/feedback', cors(corsOptions));
+
 // Routes
-app.post('/api/feedback', async (req, res) => {
+app.post('/api/feedback', cors(corsOptions), async (req, res) => {
   try {
     const { title, description, category, priority, steps, screenshot, url, browser } = req.body;
 
