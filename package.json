@@ -1,0 +1,20 @@
+{
+  "name": "buggy",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "start": "turbo run start",
+    "lint": "turbo run lint"
+  },
+  "devDependencies": {
+    "turbo": "^1.10.16",
+    "typescript": "^5.3.3",
+    "@types/node": "^20.11.0",
+    "prettier": "^3.2.4"
+  }
+} 
