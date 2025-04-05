@@ -60,7 +60,8 @@ ${steps}
         labels: [category]
       }
     );
-
+    // Print the card to the console
+    console.log('Card created:', card);
     res.json({ success: true });
   } catch (error) {
     console.error('Error creating Trello card:', error);
