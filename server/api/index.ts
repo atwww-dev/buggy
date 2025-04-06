@@ -12,7 +12,7 @@ const port = process.env.PORT || 3000;
 
 // CORS configuration
 const corsOptions = {
-    origin: ['http://localhost:3000', 'https://buggy-flame.vercel.app'],
+    origin: ['http://localhost:3000', 'https://buggy-flame.vercel.app', 'https://sorevo.ro'],
     methods: ['GET', 'POST', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
