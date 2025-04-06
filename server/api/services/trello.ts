@@ -24,13 +24,19 @@ export class TrelloService {
     private token: string;
 
     constructor(apiKey: string, token: string) {
+        if (!apiKey || !token) {
+            throw new Error('Trello API key and token are required');
+        }
         this.apiKey = apiKey;
         this.token = token;
         this.log({
             level: 'INFO',
             operation: 'INIT',
             message: 'TrelloService initialized',
-            details: { apiKey: this.maskApiKey(apiKey) }
+            details: {
+                apiKey: this.maskApiKey(apiKey),
+                token: this.maskToken(token)
+            }
         });
     }
 
@@ -47,29 +53,18 @@ export class TrelloService {
         return `${key.substring(0, 4)}...${key.substring(key.length - 4)}`;
     }
 
+    private maskToken(token: string): string {
+        return `${token.substring(0, 4)}...${token.substring(token.length - 4)}`;
+    }
+
     private async fetchTrello<T>(
         endpoint: string,
         method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET',
         params?: Record<string, string | string[]>
     ): Promise<T> {
         const url = new URL(`${TRELLO_API_URL}${endpoint}`);
-        const maskedParams = params ? { ...params } : undefined;
-        if (maskedParams?.idLabels) {
-            maskedParams.idLabels = ['[REDACTED]'];
-        }
 
-        this.log({
-            level: 'DEBUG',
-            operation: 'API_REQUEST',
-            message: `Making ${method} request to ${endpoint}`,
-            details: {
-                endpoint,
-                method,
-                params: maskedParams
-            }
-        });
-
-        // Add authentication parameters
+        // Add authentication parameters first
         url.searchParams.append('key', this.apiKey);
         url.searchParams.append('token', this.token);
 
@@ -84,16 +79,28 @@ export class TrelloService {
             });
         }
 
+        this.log({
+            level: 'DEBUG',
+            operation: 'API_REQUEST',
+            message: `Making ${method} request to ${endpoint}`,
+            details: {
+                endpoint,
+                method,
+                params: params ? { ...params, key: '[REDACTED]', token: '[REDACTED]' } : undefined
+            }
+        });
+
         try {
             const response = await fetch(url.toString(), {
                 method,
                 headers: {
-                    'Accept': 'application/json',
-                },
+                    'Accept': 'application/json'
+                }
             });
 
+            const responseText = await response.text();
+
             if (!response.ok) {
-                const errorText = await response.text();
                 this.log({
                     level: 'ERROR',
                     operation: 'API_ERROR',
@@ -101,24 +108,13 @@ export class TrelloService {
                     details: {
                         status: response.status,
                         statusText: response.statusText,
-                        error: errorText,
-                        url: url.toString()
+                        error: responseText
                     }
                 });
-                throw new Error(`Trello API error: ${errorText}`);
+                throw new Error(`Trello API error (${response.status}): ${responseText}`);
             }
 
-            const data = await response.json();
-            this.log({
-                level: 'DEBUG',
-                operation: 'API_RESPONSE',
-                message: `Successfully received response from ${endpoint}`,
-                details: {
-                    status: response.status,
-                    responseType: typeof data
-                }
-            });
-
+            const data = JSON.parse(responseText);
             return data;
         } catch (error) {
             this.log({
@@ -126,8 +122,7 @@ export class TrelloService {
                 operation: 'API_ERROR',
                 message: 'Failed to complete Trello API request',
                 details: {
-                    error: error instanceof Error ? error.message : 'Unknown error',
-                    url: url.toString()
+                    error: error instanceof Error ? error.message : 'Unknown error'
                 }
             });
             throw error;
@@ -149,43 +144,36 @@ export class TrelloService {
 
         const { name, desc, idList, urlSource, idLabels } = params;
 
-        const queryParams: Record<string, string | string[]> = {
+        // Create the card first with basic parameters
+        const card = await this.fetchTrello<TrelloCard>('/cards', 'POST', {
             name,
             desc,
-            idList,
-        };
+            idList
+        });
 
+        // If there's a URL source, add it as an attachment
         if (urlSource) {
-            queryParams.urlSource = urlSource;
+            await this.addAttachmentToCard(card.id, urlSource);
         }
 
+        // If there are labels, add them
         if (idLabels && idLabels.length > 0) {
-            queryParams.idLabels = idLabels;
+            for (const labelId of idLabels) {
+                await this.addLabelToCard(card.id, labelId);
+            }
         }
 
-        try {
-            const card = await this.fetchTrello<TrelloCard>('/cards', 'POST', queryParams);
-            this.log({
-                level: 'INFO',
-                operation: 'CREATE_CARD_SUCCESS',
-                message: 'Successfully created Trello card',
-                details: {
-                    cardId: card.id,
-                    name: card.name
-                }
-            });
-            return card;
-        } catch (error) {
-            this.log({
-                level: 'ERROR',
-                operation: 'CREATE_CARD_FAILED',
-                message: 'Failed to create Trello card',
-                details: {
-                    error: error instanceof Error ? error.message : 'Unknown error'
-                }
-            });
-            throw error;
-        }
+        this.log({
+            level: 'INFO',
+            operation: 'CREATE_CARD_SUCCESS',
+            message: 'Successfully created Trello card',
+            details: {
+                cardId: card.id,
+                name: card.name
+            }
+        });
+
+        return card;
     }
 
     async getCard(cardId: string): Promise<TrelloCard> {
@@ -195,29 +183,19 @@ export class TrelloService {
             message: `Fetching card details for ${cardId}`
         });
 
-        try {
-            const card = await this.fetchTrello<TrelloCard>(`/cards/${cardId}`);
-            this.log({
-                level: 'DEBUG',
-                operation: 'GET_CARD_SUCCESS',
-                message: `Successfully fetched card ${cardId}`,
-                details: {
-                    name: card.name,
-                    status: card.closed ? 'closed' : 'open'
-                }
-            });
-            return card;
-        } catch (error) {
-            this.log({
-                level: 'ERROR',
-                operation: 'GET_CARD_FAILED',
-                message: `Failed to fetch card ${cardId}`,
-                details: {
-                    error: error instanceof Error ? error.message : 'Unknown error'
-                }
-            });
-            throw error;
-        }
+        const card = await this.fetchTrello<TrelloCard>(`/cards/${cardId}`);
+
+        this.log({
+            level: 'DEBUG',
+            operation: 'GET_CARD_SUCCESS',
+            message: `Successfully fetched card ${cardId}`,
+            details: {
+                name: card.name,
+                status: card.closed ? 'closed' : 'open'
+            }
+        });
+
+        return card;
     }
 
     async addLabelToCard(cardId: string, labelId: string): Promise<void> {
@@ -228,24 +206,13 @@ export class TrelloService {
             details: { labelId }
         });
 
-        try {
-            await this.fetchTrello(`/cards/${cardId}/idLabels`, 'POST', { value: labelId });
-            this.log({
-                level: 'INFO',
-                operation: 'ADD_LABEL_SUCCESS',
-                message: `Successfully added label to card ${cardId}`
-            });
-        } catch (error) {
-            this.log({
-                level: 'ERROR',
-                operation: 'ADD_LABEL_FAILED',
-                message: `Failed to add label to card ${cardId}`,
-                details: {
-                    error: error instanceof Error ? error.message : 'Unknown error'
-                }
-            });
-            throw error;
-        }
+        await this.fetchTrello(`/cards/${cardId}/idLabels`, 'POST', { idLabel: labelId });
+
+        this.log({
+            level: 'INFO',
+            operation: 'ADD_LABEL_SUCCESS',
+            message: `Successfully added label to card ${cardId}`
+        });
     }
 
     async addAttachmentToCard(cardId: string, url: string): Promise<void> {
@@ -256,23 +223,12 @@ export class TrelloService {
             details: { url: url.substring(0, 50) + '...' }
         });
 
-        try {
-            await this.fetchTrello(`/cards/${cardId}/attachments`, 'POST', { url });
-            this.log({
-                level: 'INFO',
-                operation: 'ADD_ATTACHMENT_SUCCESS',
-                message: `Successfully added attachment to card ${cardId}`
-            });
-        } catch (error) {
-            this.log({
-                level: 'ERROR',
-                operation: 'ADD_ATTACHMENT_FAILED',
-                message: `Failed to add attachment to card ${cardId}`,
-                details: {
-                    error: error instanceof Error ? error.message : 'Unknown error'
-                }
-            });
-            throw error;
-        }
+        await this.fetchTrello(`/cards/${cardId}/attachments`, 'POST', { url });
+
+        this.log({
+            level: 'INFO',
+            operation: 'ADD_ATTACHMENT_SUCCESS',
+            message: `Successfully added attachment to card ${cardId}`
+        });
     }
 } 

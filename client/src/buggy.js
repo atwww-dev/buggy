@@ -25,11 +25,279 @@ class Buggy {
       </svg>
       ${this.config.buttonText}
     `;
-    button.onclick = () => this.showModal();
+    button.onclick = () => this.startBugReport();
     document.body.appendChild(button);
   }
 
-  createModal() {
+  async startBugReport() {
+    try {
+      // First capture the screenshot
+      const screenshot = await this.captureScreenshot();
+      // Then show the annotation interface
+      this.showAnnotationInterface(screenshot);
+    } catch (error) {
+      console.error('Failed to capture screenshot:', error);
+      this.showError('Failed to capture screenshot. Please try again.');
+    }
+  }
+
+  async captureScreenshot() {
+    try {
+      const canvas = await html2canvas(document.body, {
+        logging: false,
+        useCORS: true,
+        allowTaint: true,
+        foreignObjectRendering: true
+      });
+      return canvas.toDataURL('image/png');
+    } catch (error) {
+      console.error('Screenshot capture error:', error);
+      throw error;
+    }
+  }
+
+  showAnnotationInterface(screenshot) {
+    const container = document.createElement('div');
+    container.className = 'buggy-annotation-container';
+    container.innerHTML = `
+      <div class="buggy-toolbar">
+        <div class="buggy-tools">
+          <button class="buggy-tool active" data-tool="pen">✏️ Draw</button>
+          <button class="buggy-tool" data-tool="arrow">➡️ Arrow</button>
+          <button class="buggy-tool" data-tool="rectangle">⬜ Rectangle</button>
+          <button class="buggy-tool" data-tool="text">T Text</button>
+        </div>
+        <div class="buggy-colors">
+          <button class="buggy-color active" data-color="#ff0000" style="background: #ff0000;"></button>
+          <button class="buggy-color" data-color="#00ff00" style="background: #00ff00;"></button>
+          <button class="buggy-color" data-color="#0000ff" style="background: #0000ff;"></button>
+          <button class="buggy-color" data-color="#ffff00" style="background: #ffff00;"></button>
+        </div>
+        <div class="buggy-actions">
+          <button class="buggy-clear">Clear</button>
+          <button class="buggy-done">Done</button>
+        </div>
+      </div>
+      <div class="buggy-canvas-wrapper">
+        <canvas id="buggy-canvas"></canvas>
+      </div>
+    `;
+
+    document.body.appendChild(container);
+
+    const canvas = container.querySelector('#buggy-canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Load and draw the screenshot
+    const img = new Image();
+    img.onload = () => {
+      // Set canvas size to match the screenshot
+      canvas.width = img.width;
+      canvas.height = img.height;
+      
+      // Draw the screenshot
+      ctx.drawImage(img, 0, 0);
+      
+      // Initialize drawing functionality
+      this.initializeDrawing(canvas, container);
+    };
+    img.src = screenshot;
+
+    // Add styles specific to annotation interface
+    const style = document.createElement('style');
+    style.textContent = `
+      .buggy-annotation-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 999999;
+        display: flex;
+        flex-direction: column;
+      }
+      .buggy-toolbar {
+        background: white;
+        padding: 10px;
+        display: flex;
+        gap: 20px;
+        align-items: center;
+      }
+      .buggy-tools, .buggy-colors, .buggy-actions {
+        display: flex;
+        gap: 10px;
+      }
+      .buggy-tool, .buggy-color {
+        padding: 8px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        background: #f0f0f0;
+      }
+      .buggy-tool.active {
+        background: #ddd;
+      }
+      .buggy-color {
+        width: 30px;
+        height: 30px;
+        border: 2px solid transparent;
+      }
+      .buggy-color.active {
+        border-color: #000;
+      }
+      .buggy-canvas-wrapper {
+        flex: 1;
+        overflow: auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+      #buggy-canvas {
+        background: white;
+        max-width: 100%;
+        max-height: 100%;
+        cursor: crosshair;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  initializeDrawing(canvas, container) {
+    const ctx = canvas.getContext('2d');
+    let isDrawing = false;
+    let lastX = 0;
+    let lastY = 0;
+    let currentTool = 'pen';
+    let currentColor = '#ff0000';
+
+    // Tool selection
+    container.querySelectorAll('.buggy-tool').forEach(tool => {
+      tool.addEventListener('click', (e) => {
+        container.querySelectorAll('.buggy-tool').forEach(t => t.classList.remove('active'));
+        e.target.classList.add('active');
+        currentTool = e.target.dataset.tool;
+      });
+    });
+
+    // Color selection
+    container.querySelectorAll('.buggy-color').forEach(color => {
+      color.addEventListener('click', (e) => {
+        container.querySelectorAll('.buggy-color').forEach(c => c.classList.remove('active'));
+        e.target.classList.add('active');
+        currentColor = e.target.dataset.color;
+      });
+    });
+
+    // Drawing functions
+    function draw(e) {
+      if (!isDrawing) return;
+      
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      ctx.strokeStyle = currentColor;
+      ctx.lineWidth = 2;
+      ctx.lineCap = 'round';
+
+      switch (currentTool) {
+        case 'pen':
+          ctx.beginPath();
+          ctx.moveTo(lastX, lastY);
+          ctx.lineTo(x, y);
+          ctx.stroke();
+          break;
+        case 'arrow':
+          // Clear the previous frame
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          ctx.putImageData(imageData, 0, 0);
+          drawArrow(lastX, lastY, x, y);
+          break;
+        case 'rectangle':
+          // Clear the previous frame
+          const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          ctx.putImageData(imgData, 0, 0);
+          drawRectangle(lastX, lastY, x, y);
+          break;
+      }
+
+      [lastX, lastY] = [x, y];
+    }
+
+    function drawArrow(fromX, fromY, toX, toY) {
+      const headLength = 15;
+      const angle = Math.atan2(toY - fromY, toX - fromX);
+
+      ctx.beginPath();
+      ctx.moveTo(fromX, fromY);
+      ctx.lineTo(toX, toY);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(toX, toY);
+      ctx.lineTo(
+        toX - headLength * Math.cos(angle - Math.PI / 6),
+        toY - headLength * Math.sin(angle - Math.PI / 6)
+      );
+      ctx.lineTo(
+        toX - headLength * Math.cos(angle + Math.PI / 6),
+        toY - headLength * Math.sin(angle + Math.PI / 6)
+      );
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    function drawRectangle(startX, startY, endX, endY) {
+      ctx.strokeRect(
+        Math.min(startX, endX),
+        Math.min(startY, endY),
+        Math.abs(endX - startX),
+        Math.abs(endY - startY)
+      );
+    }
+
+    // Event listeners
+    canvas.addEventListener('mousedown', (e) => {
+      isDrawing = true;
+      const rect = canvas.getBoundingClientRect();
+      [lastX, lastY] = [e.clientX - rect.left, e.clientY - rect.top];
+
+      if (currentTool === 'text') {
+        const text = prompt('Enter text:');
+        if (text) {
+          ctx.fillStyle = currentColor;
+          ctx.font = '16px Arial';
+          ctx.fillText(text, lastX, lastY);
+        }
+        isDrawing = false;
+      }
+    });
+
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', () => isDrawing = false);
+    canvas.addEventListener('mouseout', () => isDrawing = false);
+
+    // Clear button
+    container.querySelector('.buggy-clear').addEventListener('click', () => {
+      const img = new Image();
+      img.onload = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+      };
+      img.src = canvas.toDataURL();
+    });
+
+    // Done button
+    container.querySelector('.buggy-done').addEventListener('click', () => {
+      const annotatedImage = canvas.toDataURL('image/png');
+      document.body.removeChild(container);
+      this.showModal(annotatedImage);
+    });
+  }
+
+  showModal(screenshot) {
     const modal = document.createElement('div');
     modal.className = 'buggy-modal';
     modal.innerHTML = `
@@ -39,14 +307,6 @@ class Buggy {
           <button class="buggy-close">&times;</button>
         </div>
         <div class="buggy-modal-body">
-          <div class="buggy-screenshot-container">
-            <canvas id="buggy-canvas"></canvas>
-            <div class="buggy-annotation-tools">
-              <button class="buggy-tool" data-tool="highlight">Highlight</button>
-              <button class="buggy-tool" data-tool="draw">Draw</button>
-              <button class="buggy-tool" data-tool="text">Text</button>
-            </div>
-          </div>
           <form id="buggy-form">
             <div class="buggy-form-group">
               <label for="buggy-title">Title</label>
@@ -78,6 +338,9 @@ class Buggy {
               <label for="buggy-steps">Reproduction Steps</label>
               <textarea id="buggy-steps" placeholder="Steps to reproduce the issue"></textarea>
             </div>
+            <div class="buggy-screenshot">
+              <img src="${screenshot}" alt="Screenshot" style="max-width: 100%; margin-top: 10px;">
+            </div>
             <button type="submit" class="buggy-submit">Submit Report</button>
           </form>
         </div>
@@ -86,363 +349,13 @@ class Buggy {
     document.body.appendChild(modal);
 
     // Add event listeners
-    modal.querySelector('.buggy-close').onclick = () => this.hideModal();
-    modal.querySelector('#buggy-form').onsubmit = (e) => this.handleSubmit(e);
-    
-    // Initialize canvas
-    this.initializeCanvas();
-  }
-
-  async initializeCanvas() {
-    const previewCanvas = document.getElementById('buggy-canvas');
-    const previewCtx = previewCanvas.getContext('2d');
-    
-    // Capture screenshot
-    const screenshot = await this.captureScreenshot();
-    const img = new Image();
-    img.onload = () => {
-      previewCanvas.width = img.width;
-      previewCanvas.height = img.height;
-      previewCtx.drawImage(img, 0, 0);
+    modal.querySelector('.buggy-close').onclick = () => {
+      document.body.removeChild(modal);
     };
-    img.src = screenshot;
-
-    // Create canvas container
-    const canvasContainer = document.createElement('div');
-    canvasContainer.className = 'buggy-canvas-container';
-    canvasContainer.style.cssText = `
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.8);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 999999;
-    `;
-
-    // Create toolbar
-    const toolbar = document.createElement('div');
-    toolbar.style.cssText = `
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      background: white;
-      padding: 10px;
-      border-radius: 8px;
-      display: flex;
-      gap: 10px;
-      z-index: 1;
-    `;
-
-    // Drawing tools
-    const tools = [
-      { name: 'pen', icon: '✏️' },
-      { name: 'arrow', icon: '➡️' },
-      { name: 'rectangle', icon: '⬜' },
-      { name: 'circle', icon: '⭕' },
-      { name: 'text', icon: 'T' }
-    ];
-
-    let currentTool = 'pen';
-    let isDrawing = false;
-    let startX, startY;
-    let annotations = [];
-    let currentColor = '#ff0000';
-
-    // Create tool buttons
-    tools.forEach(tool => {
-      const button = document.createElement('button');
-      button.innerHTML = tool.icon;
-      button.style.cssText = `
-        padding: 8px;
-        border: none;
-        background: ${currentTool === tool.name ? '#e0e0e0' : 'white'};
-        border-radius: 4px;
-        cursor: pointer;
-      `;
-      button.onclick = () => {
-        currentTool = tool.name;
-        document.querySelectorAll('.buggy-tool-button').forEach(btn => {
-          btn.style.background = 'white';
-        });
-        button.style.background = '#e0e0e0';
-      };
-      button.className = 'buggy-tool-button';
-      toolbar.appendChild(button);
-    });
-
-    // Color picker
-    const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#000000', '#ffffff'];
-    const colorContainer = document.createElement('div');
-    colorContainer.style.cssText = `
-      display: flex;
-      gap: 5px;
-      margin-left: 10px;
-    `;
-
-    colors.forEach(color => {
-      const colorButton = document.createElement('button');
-      colorButton.style.cssText = `
-        width: 24px;
-        height: 24px;
-        border: 2px solid ${currentColor === color ? '#000' : 'transparent'};
-        border-radius: 50%;
-        background: ${color};
-        cursor: pointer;
-      `;
-      colorButton.onclick = () => {
-        currentColor = color;
-        document.querySelectorAll('.buggy-color-button').forEach(btn => {
-          btn.style.borderColor = 'transparent';
-        });
-        colorButton.style.borderColor = '#000';
-      };
-      colorButton.className = 'buggy-color-button';
-      colorContainer.appendChild(colorButton);
-    });
-
-    toolbar.appendChild(colorContainer);
-    canvasContainer.appendChild(toolbar);
-
-    // Create annotation canvas
-    const annotationCanvas = document.createElement('canvas');
-    annotationCanvas.style.cssText = `
-      max-width: 90%;
-      max-height: 80%;
-      border: 2px solid white;
-      cursor: crosshair;
-    `;
-
-    const annotationCtx = annotationCanvas.getContext('2d');
-    annotationCanvas.width = screenshot.width;
-    annotationCanvas.height = screenshot.height;
-    annotationCtx.drawImage(screenshot, 0, 0);
-
-    // Drawing functions
-    function drawArrow(x1, y1, x2, y2) {
-      const headLength = 20;
-      const angle = Math.atan2(y2 - y1, x2 - x1);
-      
-      annotationCtx.beginPath();
-      annotationCtx.moveTo(x1, y1);
-      annotationCtx.lineTo(x2, y2);
-      annotationCtx.strokeStyle = currentColor;
-      annotationCtx.lineWidth = 2;
-      annotationCtx.stroke();
-
-      // Arrow head
-      annotationCtx.beginPath();
-      annotationCtx.moveTo(x2, y2);
-      annotationCtx.lineTo(
-        x2 - headLength * Math.cos(angle - Math.PI / 6),
-        y2 - headLength * Math.sin(angle - Math.PI / 6)
-      );
-      annotationCtx.lineTo(
-        x2 - headLength * Math.cos(angle + Math.PI / 6),
-        y2 - headLength * Math.sin(angle + Math.PI / 6)
-      );
-      annotationCtx.closePath();
-      annotationCtx.fillStyle = currentColor;
-      annotationCtx.fill();
-    }
-
-    function drawRectangle(x1, y1, x2, y2) {
-      const width = x2 - x1;
-      const height = y2 - y1;
-      annotationCtx.strokeStyle = currentColor;
-      annotationCtx.lineWidth = 2;
-      annotationCtx.strokeRect(x1, y1, width, height);
-    }
-
-    function drawCircle(x1, y1, x2, y2) {
-      const radius = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
-      annotationCtx.beginPath();
-      annotationCtx.arc(x1, y1, radius, 0, 2 * Math.PI);
-      annotationCtx.strokeStyle = currentColor;
-      annotationCtx.lineWidth = 2;
-      annotationCtx.stroke();
-    }
-
-    // Event listeners for drawing
-    annotationCanvas.addEventListener('mousedown', (e) => {
-      isDrawing = true;
-      startX = e.offsetX;
-      startY = e.offsetY;
-
-      if (currentTool === 'text') {
-        const text = prompt('Enter text:');
-        if (text) {
-          annotationCtx.fillStyle = currentColor;
-          annotationCtx.font = '16px Arial';
-          annotationCtx.fillText(text, startX, startY);
-          annotations.push({ type: 'text', x: startX, y: startY, text, color: currentColor });
-        }
-        isDrawing = false;
-      }
-    });
-
-    annotationCanvas.addEventListener('mousemove', (e) => {
-      if (!isDrawing) return;
-
-      const currentX = e.offsetX;
-      const currentY = e.offsetY;
-
-      // Clear canvas and redraw everything
-      annotationCtx.clearRect(0, 0, annotationCanvas.width, annotationCanvas.height);
-      annotationCtx.drawImage(screenshot, 0, 0);
-
-      // Redraw all annotations
-      annotations.forEach(annotation => {
-        annotationCtx.strokeStyle = annotation.color;
-        annotationCtx.fillStyle = annotation.color;
-        switch (annotation.type) {
-          case 'pen':
-            annotationCtx.beginPath();
-            annotationCtx.moveTo(annotation.startX, annotation.startY);
-            annotationCtx.lineTo(annotation.endX, annotation.endY);
-            annotationCtx.stroke();
-            break;
-          case 'arrow':
-            drawArrow(annotation.startX, annotation.startY, annotation.endX, annotation.endY);
-            break;
-          case 'rectangle':
-            drawRectangle(annotation.startX, annotation.startY, annotation.endX, annotation.endY);
-            break;
-          case 'circle':
-            drawCircle(annotation.startX, annotation.startY, annotation.endX, annotation.endY);
-            break;
-          case 'text':
-            annotationCtx.font = '16px Arial';
-            annotationCtx.fillText(annotation.text, annotation.x, annotation.y);
-            break;
-        }
-      });
-
-      // Draw current annotation
-      annotationCtx.strokeStyle = currentColor;
-      annotationCtx.fillStyle = currentColor;
-
-      switch (currentTool) {
-        case 'pen':
-          annotationCtx.beginPath();
-          annotationCtx.moveTo(startX, startY);
-          annotationCtx.lineTo(currentX, currentY);
-          annotationCtx.stroke();
-          break;
-        case 'arrow':
-          drawArrow(startX, startY, currentX, currentY);
-          break;
-        case 'rectangle':
-          drawRectangle(startX, startY, currentX, currentY);
-          break;
-        case 'circle':
-          drawCircle(startX, startY, currentX, currentY);
-          break;
-      }
-    });
-
-    annotationCanvas.addEventListener('mouseup', () => {
-      if (!isDrawing) return;
-      isDrawing = false;
-
-      // Save the annotation
-      if (currentTool !== 'text') {
-        annotations.push({
-          type: currentTool,
-          startX,
-          startY,
-          endX: e.offsetX,
-          endY: e.offsetY,
-          color: currentColor
-        });
-      }
-    });
-
-    // Add clear button
-    const clearButton = document.createElement('button');
-    clearButton.textContent = 'Clear';
-    clearButton.style.cssText = `
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      padding: 8px 16px;
-      background: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      z-index: 1;
-    `;
-    clearButton.onclick = () => {
-      annotations = [];
-      annotationCtx.clearRect(0, 0, annotationCanvas.width, annotationCanvas.height);
-      annotationCtx.drawImage(screenshot, 0, 0);
-    };
-    canvasContainer.appendChild(clearButton);
-
-    canvasContainer.appendChild(annotationCanvas);
-    document.body.appendChild(canvasContainer);
-
-    // Add close button
-    const closeButton = document.createElement('button');
-    closeButton.innerHTML = '×';
-    closeButton.style.cssText = `
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      background: white;
-      border: none;
-      border-radius: 50%;
-      width: 30px;
-      height: 30px;
-      font-size: 20px;
-      cursor: pointer;
-      z-index: 1;
-    `;
-    closeButton.onclick = () => {
-      document.body.removeChild(canvasContainer);
-    };
-    canvasContainer.appendChild(closeButton);
-
-    // Add continue button
-    const continueButton = document.createElement('button');
-    continueButton.textContent = 'Continue';
-    continueButton.style.cssText = `
-      position: absolute;
-      bottom: 20px;
-      right: 20px;
-      padding: 10px 20px;
-      background: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      z-index: 1;
-    `;
-    continueButton.onclick = () => {
-      document.body.removeChild(canvasContainer);
-      showForm(annotationCanvas.toDataURL());
-    };
-    canvasContainer.appendChild(continueButton);
+    modal.querySelector('#buggy-form').onsubmit = (e) => this.handleSubmit(e, screenshot);
   }
 
-  async captureScreenshot() {
-    const canvas = await html2canvas(document.body);
-    return canvas.toDataURL('image/png');
-  }
-
-  showModal() {
-    document.querySelector('.buggy-modal').style.display = 'flex';
-  }
-
-  hideModal() {
-    document.querySelector('.buggy-modal').style.display = 'none';
-  }
-
-  async handleSubmit(e) {
+  async handleSubmit(e, screenshot) {
     e.preventDefault();
     
     const form = e.target;
@@ -452,7 +365,7 @@ class Buggy {
       category: form.querySelector('#buggy-category').value,
       priority: form.querySelector('#buggy-priority').value,
       steps: form.querySelector('#buggy-steps').value,
-      screenshot: document.getElementById('buggy-canvas').toDataURL('image/png'),
+      screenshot: screenshot,
       url: window.location.href,
       browser: navigator.userAgent
     };
@@ -469,17 +382,17 @@ class Buggy {
 
       if (response.ok) {
         this.showSuccess();
-        this.hideModal();
+        document.body.removeChild(document.querySelector('.buggy-modal'));
       } else {
         this.showError();
       }
     } catch (error) {
+      console.error('Error submitting bug report:', error);
       this.showError();
     }
   }
 
   showSuccess() {
-    // Show success message
     const message = document.createElement('div');
     message.className = 'buggy-message buggy-success';
     message.textContent = 'Bug report submitted successfully!';
@@ -487,11 +400,10 @@ class Buggy {
     setTimeout(() => message.remove(), 3000);
   }
 
-  showError() {
-    // Show error message
+  showError(text = 'Failed to submit bug report. Please try again.') {
     const message = document.createElement('div');
     message.className = 'buggy-message buggy-error';
-    message.textContent = 'Failed to submit bug report. Please try again.';
+    message.textContent = text;
     document.body.appendChild(message);
     setTimeout(() => message.remove(), 3000);
   }
@@ -499,130 +411,100 @@ class Buggy {
   addStyles() {
     const style = document.createElement('style');
     style.textContent = `
-      .buggy-container {
+      .buggy-button {
+        position: fixed;
+        ${this.config.buttonPosition === 'bottom-right' ? 'bottom: 20px; right: 20px;' : ''}
+        ${this.config.buttonPosition === 'bottom-left' ? 'bottom: 20px; left: 20px;' : ''}
+        ${this.config.buttonPosition === 'top-right' ? 'top: 20px; right: 20px;' : ''}
+        ${this.config.buttonPosition === 'top-left' ? 'top: 20px; left: 20px;' : ''}
+        padding: 10px 20px;
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        z-index: 999998;
+        font-family: system-ui, -apple-system, sans-serif;
+      }
+      .buggy-modal {
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
         background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
         z-index: 999999;
-        display: none;
       }
-      .buggy-modal {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: #ffffff;
-        padding: 2rem;
+      .buggy-modal-content {
+        background: white;
+        padding: 20px;
         border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         width: 90%;
-        max-width: 500px;
+        max-width: 600px;
         max-height: 90vh;
         overflow-y: auto;
       }
-      .buggy-screenshot-container {
-        margin: 1rem 0;
-        border: 1px solid #e5e7eb;
-        border-radius: 4px;
-        overflow: hidden;
-      }
-      .buggy-screenshot {
-        max-width: 100%;
-        display: block;
-      }
-      .buggy-annotation-tools {
+      .buggy-modal-header {
         display: flex;
-        gap: 0.5rem;
-        margin: 1rem 0;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
       }
-      .buggy-tool-button {
-        padding: 0.5rem 1rem;
-        border: 1px solid #e5e7eb;
-        border-radius: 4px;
-        background: #ffffff;
+      .buggy-close {
+        background: none;
+        border: none;
+        font-size: 24px;
         cursor: pointer;
-        transition: all 0.2s;
-      }
-      .buggy-tool-button:hover {
-        background: #f3f4f6;
-      }
-      .buggy-tool-button.active {
-        background: #000000;
-        color: #ffffff;
-        border-color: #000000;
       }
       .buggy-form-group {
-        margin-bottom: 1rem;
+        margin-bottom: 15px;
       }
-      .buggy-label {
+      .buggy-form-group label {
         display: block;
-        margin-bottom: 0.5rem;
+        margin-bottom: 5px;
         font-weight: 500;
       }
-      .buggy-input,
-      .buggy-textarea {
+      .buggy-form-group input,
+      .buggy-form-group textarea,
+      .buggy-form-group select {
         width: 100%;
-        padding: 0.5rem;
+        padding: 8px;
         border: 1px solid #e5e7eb;
         border-radius: 4px;
-        font-size: 1rem;
       }
-      .buggy-textarea {
+      .buggy-form-group textarea {
         min-height: 100px;
         resize: vertical;
       }
-      .buggy-button {
-        padding: 0.75rem 1.5rem;
-        border: none;
-        border-radius: 4px;
-        font-size: 1rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s;
-      }
       .buggy-submit {
         background: #000000;
-        color: #ffffff;
-      }
-      .buggy-submit:hover {
-        background: #333333;
-      }
-      .buggy-cancel {
-        background: #f3f4f6;
-        color: #000000;
-        margin-right: 1rem;
-      }
-      .buggy-cancel:hover {
-        background: #e5e7eb;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        width: 100%;
       }
       .buggy-message {
         position: fixed;
-        top: 1rem;
-        right: 1rem;
-        padding: 1rem;
+        top: 20px;
+        right: 20px;
+        padding: 10px 20px;
         border-radius: 4px;
-        color: #ffffff;
+        color: white;
         z-index: 1000000;
-        animation: slideIn 0.3s ease-out;
       }
-      .buggy-message.success {
+      .buggy-message.buggy-success {
         background: #10b981;
       }
-      .buggy-message.error {
+      .buggy-message.buggy-error {
         background: #ef4444;
-      }
-      @keyframes slideIn {
-        from {
-          transform: translateX(100%);
-          opacity: 0;
-        }
-        to {
-          transform: translateX(0);
-          opacity: 1;
-        }
       }
     `;
     document.head.appendChild(style);
