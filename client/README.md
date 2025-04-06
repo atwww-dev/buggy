@@ -5,12 +5,17 @@ A lightweight bug reporting tool with screenshot capture, annotation capabilitie
 ## Features
 
 - 📸 Screenshot capture directly from the browser
-- ✏️ Screenshot annotation with drawing tools
+- ✏️ Screenshot annotation with drawing tools, including:
+  - Pen tool with color selection
+  - Eraser tool
+  - Rectangle and arrow tools
+  - Text annotations
 - 🔍 Zoom and pan functionality for better image navigation
 - 📋 Comprehensive bug report form with all necessary fields
 - 🎨 Clean black and white UI
 - 📱 Responsive design
 - 🔌 Easy integration with any backend
+- 🔄 Trello integration for seamless bug tracking
 
 ## Installation
 

@@ -165,9 +165,30 @@ npm start    # Production
 PORT=3000
 TRELLO_API_KEY=your_trello_api_key
 TRELLO_TOKEN=your_trello_token
-TRELLO_BOARD_ID=your_board_id
-TRELLO_LIST_ID=your_list_id
+TRELLO_LIST_ID=your_list_id_here
+
+# Optional - label IDs for categorizing cards
+TRELLO_LABEL_BUG=bug_label_id_here
+TRELLO_LABEL_FEATURE=feature_label_id_here
+TRELLO_LABEL_IMPROVEMENT=improvement_label_id_here
+
+# Optional - label IDs for priority levels
+TRELLO_LABEL_HIGH_PRIORITY=high_priority_label_id_here
+TRELLO_LABEL_MEDIUM_PRIORITY=medium_priority_label_id_here
+TRELLO_LABEL_LOW_PRIORITY=low_priority_label_id_here
 ```
+
+### Screenshot Handling
+
+The server handles screenshot attachments in a robust way:
+
+1. Screenshots are captured in the browser as base64 data
+2. When submitted to the server, screenshots are first validated
+3. The server creates a Trello card with formatted description
+4. Screenshots are uploaded as multipart/form-data attachments to the card
+5. The system includes fallback mechanisms for large images
+
+This approach ensures reliable handling of screenshots regardless of size or format.
 
 ## 🔌 Client Integration
 
@@ -215,11 +236,23 @@ Creates a new bug report and Trello card.
 }
 ```
 
-**Response:**
+**Success Response:**
 ```json
 {
   "success": true,
-  "cardId": "trello_card_id"
+  "message": "Feedback submitted successfully",
+  "data": {
+    "cardId": "trello_card_id",
+    "cardUrl": "https://trello.com/c/card_short_id"
+  }
+}
+```
+
+**Error Response:**
+```json
+{
+  "success": false,
+  "message": "Error message explaining what went wrong"
 }
 ```
 

@@ -393,7 +393,17 @@ npm install</code></pre>
 PORT=3000
 TRELLO_API_KEY=your_api_key_here
 TRELLO_TOKEN=your_token_here
-TRELLO_LIST_ID=your_list_id_here</code></pre>
+TRELLO_LIST_ID=your_list_id_here
+
+# Optional - label IDs for categorizing cards
+TRELLO_LABEL_BUG=bug_label_id_here
+TRELLO_LABEL_FEATURE=feature_label_id_here
+TRELLO_LABEL_IMPROVEMENT=improvement_label_id_here
+
+# Optional - label IDs for priority levels
+TRELLO_LABEL_HIGH_PRIORITY=high_priority_label_id_here
+TRELLO_LABEL_MEDIUM_PRIORITY=medium_priority_label_id_here
+TRELLO_LABEL_LOW_PRIORITY=low_priority_label_id_here</code></pre>
 
             <h3>3. Start Server</h3>
             <pre><code>npm start</code></pre>
@@ -402,6 +412,24 @@ TRELLO_LIST_ID=your_list_id_here</code></pre>
         <div class="warning">
             <p>Make sure to keep your Trello API credentials secure and never expose them in client-side code.</p>
         </div>
+
+        <h3>Trello Card Format</h3>
+        <p>Cards created in Trello will have the following formatted description:</p>
+        <pre><code>**Description:**
+[User's description text]
+
+**Category:** [category]
+**Priority:** [priority]
+
+**Reproduction Steps:**
+[Steps provided by user]
+
+**Technical Details:**
+- URL: [page URL]
+- Browser: [browser info]
+- Timestamp: [ISO timestamp]</code></pre>
+        
+        <p>Screenshots are added as attachments to the Trello card.</p>
 
         <h3>API Endpoints</h3>
         <div class="api-endpoint">
