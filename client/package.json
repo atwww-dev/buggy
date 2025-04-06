@@ -1,0 +1,27 @@
+{
+  "name": "buggy",
+  "version": "1.0.0",
+  "description": "A lightweight bug reporting tool with screenshot and annotation capabilities",
+  "main": "scripts/buggy.js",
+  "scripts": {
+    "build": "node build.js",
+    "dev": "nodemon --watch src --ext js,jsx,css --exec \"npm run build\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "bug-reporting",
+    "screenshot",
+    "trello",
+    "annotation"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "esbuild": "^0.25.2",
+    "nodemon": "^3.1.9"
+  },
+  "files": [
+    "scripts",
+    "README.md"
+  ]
+}

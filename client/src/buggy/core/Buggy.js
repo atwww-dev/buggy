@@ -32,8 +32,17 @@ export class Buggy {
   async startBugReport() {
     try {
       // Step 1: Capture screenshot
-      const screenshot = await captureScreenshot();
-      showMessage('Screenshot captured successfully');
+      let screenshot;
+      try {
+        screenshot = await captureScreenshot();
+        showMessage('Screenshot captured successfully');
+      } catch (error) {
+        // If user cancelled the screenshot, abort the whole process
+        if (error.message === 'SCREENSHOT_CANCELLED') {
+          return null; // Exit early, don't show error message
+        }
+        throw error; // Re-throw other errors
+      }
 
       // Step 2: Show annotation tool
       const annotatedScreenshot = await this.annotationTool.show(screenshot);
@@ -47,6 +56,8 @@ export class Buggy {
     } catch (error) {
       if (error.message === 'Bug report cancelled') {
         showMessage('Bug report cancelled', 'info');
+      } else if (error.message === 'SCREENSHOT_CANCELLED') {
+        // This one is already handled above
       } else {
         console.error('Error in bug reporting flow:', error);
         showMessage('Failed to complete bug report', 'error');
