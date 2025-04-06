@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Buggy Documentation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary-color: #000000;
@@ -21,28 +22,54 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
             line-height: 1.6;
             color: var(--text-color);
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
-            background: var(--accent-color);
+            background: var(--light-gray);
         }
 
         header {
             text-align: center;
             margin-bottom: 40px;
-            padding: 40px 20px;
+            padding: 60px 20px;
             background: var(--primary-color);
-            border-radius: 12px;
+            border-radius: 16px;
             color: var(--accent-color);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .header-subtitle {
+            color: rgba(255,255,255,0.9);
+            font-size: 1.2em;
+            margin-top: 15px;
+            font-weight: 500;
+        }
+
+        .badges {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.1);
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
         }
 
         h1 {
             color: var(--accent-color);
             margin-bottom: 10px;
-            font-size: 2.5em;
+            font-size: 3em;
             font-weight: 700;
         }
 
@@ -68,66 +95,80 @@
             border-radius: 4px;
             font-family: 'SF Mono', 'Menlo', monospace;
             font-size: 0.9em;
+            color: var(--secondary-color);
         }
 
         pre {
-            background: var(--light-gray);
+            background: var(--accent-color);
             padding: 20px;
-            border-radius: 8px;
+            border-radius: 12px;
             overflow-x: auto;
             margin: 20px 0;
             border: 1px solid var(--border-color);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        pre code {
+            background: transparent;
+            padding: 0;
+            color: var(--text-color);
         }
 
         .section {
             margin-bottom: 50px;
             background: var(--accent-color);
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
         }
 
         .feature-list {
             list-style: none;
             margin: 20px 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
         }
 
-        .feature-list li {
-            margin: 12px 0;
-            padding-left: 30px;
-            position: relative;
-            font-size: 1.1em;
+        .feature-item {
+            background: var(--light-gray);
+            padding: 20px;
+            border-radius: 12px;
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
         }
 
-        .feature-list li:before {
-            content: "→";
+        .feature-icon {
+            font-size: 1.5em;
             color: var(--primary-color);
-            position: absolute;
-            left: 0;
-            font-weight: bold;
+        }
+
+        .feature-content h4 {
+            color: var(--primary-color);
+            margin-bottom: 5px;
+            font-weight: 600;
         }
 
         .example {
             border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 25px;
+            border-radius: 16px;
+            padding: 30px;
             margin: 25px 0;
-            background: var(--accent-color);
-            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+            background: var(--light-gray);
         }
 
         .note {
             background: var(--light-gray);
-            border-left: 4px solid var(--secondary-color);
+            border-left: 4px solid var(--primary-color);
             padding: 20px;
             margin: 20px 0;
             border-radius: 8px;
-            font-style: italic;
         }
 
         .warning {
             background: var(--light-gray);
-            border-left: 4px solid var(--primary-color);
+            border-left: 4px solid var(--secondary-color);
             padding: 20px;
             margin: 20px 0;
             border-radius: 8px;
@@ -143,197 +184,279 @@
         a {
             color: var(--primary-color);
             text-decoration: none;
-            border-bottom: 1px solid var(--primary-color);
+            border-bottom: 1px solid transparent;
             transition: all 0.3s ease;
         }
 
         a:hover {
-            color: var(--secondary-color);
-            border-bottom-color: var(--secondary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: var(--accent-color);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--light-gray);
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .api-endpoint {
+            background: var(--light-gray);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .method {
+            font-weight: 600;
+            color: var(--primary-color);
+            padding: 4px 8px;
+            border-radius: 4px;
+            background: var(--accent-color);
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>Buggy Documentation</h1>
-        <p>A lightweight, embeddable bug reporting tool for web applications</p>
+        <h1>🐛 Buggy</h1>
+        <p class="header-subtitle">A modern, lightweight bug reporting tool with Trello integration</p>
+        <div class="badges">
+            <span class="badge">🔄 Trello integration</span>
+            <span class="badge">📸 Screenshot capture</span>
+            <span class="badge">✏️ Annotation tools</span>
+        </div>
     </header>
 
     <div class="section">
-        <h2>Introduction</h2>
-        <p>Buggy is a simple yet powerful bug reporting tool that can be easily integrated into any web application. It allows users to capture screenshots, annotate them, and submit detailed bug reports directly to your Trello board.</p>
-    </div>
-
-    <div class="section">
-        <h2>Features</h2>
-        <ul class="feature-list">
-            <li>One-click screenshot capture</li>
-            <li>Advanced annotation tools (pen, arrow, rectangle, circle, text)</li>
-            <li>Color selection for annotations</li>
-            <li>Automatic capture of browser and URL information</li>
-            <li>Customizable form fields</li>
-            <li>Direct integration with Trello</li>
-            <li>Responsive design</li>
-            <li>Easy to integrate</li>
-        </ul>
-    </div>
-
-    <div class="section">
-        <h2>Installation</h2>
-        <h3>Client-side Setup</h3>
-        <p>Add the following to your HTML file:</p>
-        <pre><code>&lt;script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"&gt;&lt;/script&gt;
-&lt;script src="https://cdn.jsdelivr.net/gh/yourusername/buggy@main/client/src/buggy.js"&gt;&lt;/script&gt;
+        <h2>Quick Start</h2>
+        <div class="example">
+            <h3>Client-side Setup</h3>
+            <pre><code>&lt;script src="https://cdn.jsdelivr.net/gh/yourusername/buggy@main/client/src/buggy.js"&gt;&lt;/script&gt;
 &lt;script&gt;
-  new Buggy({
+  const bugReporter = new Buggy({
     apiUrl: 'http://your-server:3000/api/feedback',
     buttonText: 'Report Bug',
     buttonPosition: 'bottom-right'
   });
 &lt;/script&gt;</code></pre>
-
-        <div class="note">
-            <p>Replace <code>yourusername</code> with your GitHub username and <code>main</code> with your branch name if different. You can also use specific version tags instead of branch names for better version control.</p>
         </div>
+    </div>
 
-        <h3>Server-side Setup</h3>
-        <p>1. Install dependencies:</p>
-        <pre><code>cd server
+    <div class="section">
+        <h2>Features</h2>
+        <div class="feature-list">
+            <div class="feature-item">
+                <span class="feature-icon">📸</span>
+                <div class="feature-content">
+                    <h4>Screenshot Capture</h4>
+                    <p>One-click capture of the current page state</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">✏️</span>
+                <div class="feature-content">
+                    <h4>Annotation Tools</h4>
+                    <p>Draw, highlight, and add text to screenshots</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">🎨</span>
+                <div class="feature-content">
+                    <h4>Multiple Colors</h4>
+                    <p>Choose from various colors for annotations</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">📝</span>
+                <div class="feature-content">
+                    <h4>Structured Reports</h4>
+                    <p>Organized bug reports with metadata</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">🔄</span>
+                <div class="feature-content">
+                    <h4>Trello Integration</h4>
+                    <p>Automatic card creation in Trello</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">🛠️</span>
+                <div class="feature-content">
+                    <h4>Easy Integration</h4>
+                    <p>Simple setup with minimal configuration</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Server Setup</h2>
+        <div class="example">
+            <h3>1. Install Dependencies</h3>
+            <pre><code>cd server
 npm install</code></pre>
 
-        <p>2. Configure environment variables in <code>.env</code>:</p>
-        <pre><code>PORT=3000
+            <h3>2. Configure Environment</h3>
+            <pre><code># .env
+PORT=3000
 TRELLO_API_KEY=your_api_key_here
 TRELLO_TOKEN=your_token_here
 TRELLO_LIST_ID=your_list_id_here</code></pre>
 
-        <p>3. Start the server:</p>
-        <pre><code>npm start</code></pre>
+            <h3>3. Start Server</h3>
+            <pre><code>npm start</code></pre>
+        </div>
+
+        <div class="warning">
+            <p>Make sure to keep your Trello API credentials secure and never expose them in client-side code.</p>
+        </div>
+
+        <h3>API Endpoints</h3>
+        <div class="api-endpoint">
+            <span class="method">POST</span>
+            <code>/api/feedback</code>
+            <span>Create a new bug report and Trello card</span>
+        </div>
+
+        <h4>Request Body</h4>
+        <pre><code>{
+  "title": "Bug title",
+  "description": "Detailed bug description",
+  "screenshot": "base64_encoded_image",
+  "metadata": {
+    "url": "Current page URL",
+    "browser": "Browser information",
+    "timestamp": "ISO timestamp"
+  }
+}</code></pre>
     </div>
 
     <div class="section">
         <h2>Configuration Options</h2>
-        <div class="example">
-            <h3>Available Options</h3>
-            <pre><code>{
-  apiUrl: string,          // Your server endpoint
-  buttonText: string,      // Text for the report button
-  buttonPosition: string,  // Position of the button (top-left, top-right, bottom-left, bottom-right)
-  categories: string[],    // Custom categories for bug classification
-  priorities: string[],    // Custom priority levels
-  formFields: {           // Custom form fields
-    title: boolean,
-    description: boolean,
-    category: boolean,
-    priority: boolean,
-    steps: boolean
-  }
-}</code></pre>
-        </div>
+        <table>
+            <tr>
+                <th>Option</th>
+                <th>Type</th>
+                <th>Default</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>apiUrl</td>
+                <td>string</td>
+                <td>/api/feedback</td>
+                <td>Server endpoint for bug reports</td>
+            </tr>
+            <tr>
+                <td>buttonText</td>
+                <td>string</td>
+                <td>Report Bug</td>
+                <td>Text displayed on the button</td>
+            </tr>
+            <tr>
+                <td>buttonPosition</td>
+                <td>string</td>
+                <td>bottom-right</td>
+                <td>Position of the button (top-left, top-right, bottom-left, bottom-right)</td>
+            </tr>
+            <tr>
+                <td>categories</td>
+                <td>string[]</td>
+                <td>[]</td>
+                <td>Custom categories for bug classification</td>
+            </tr>
+            <tr>
+                <td>priorities</td>
+                <td>string[]</td>
+                <td>[]</td>
+                <td>Custom priority levels</td>
+            </tr>
+        </table>
     </div>
 
     <div class="section">
         <h2>Annotation Tools</h2>
-        <ul class="feature-list">
-            <li><strong>Pen (✏️)</strong>: Freehand drawing tool</li>
-            <li><strong>Arrow (➡️)</strong>: Draw arrows to point to specific areas</li>
-            <li><strong>Rectangle (⬜)</strong>: Draw rectangles to highlight areas</li>
-            <li><strong>Circle (⭕)</strong>: Draw circles to emphasize elements</li>
-            <li><strong>Text (T)</strong>: Add text annotations</li>
-        </ul>
+        <div class="feature-list">
+            <div class="feature-item">
+                <span class="feature-icon">✏️</span>
+                <div class="feature-content">
+                    <h4>Pen Tool</h4>
+                    <p>Freehand drawing for precise annotations</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">➡️</span>
+                <div class="feature-content">
+                    <h4>Arrow Tool</h4>
+                    <p>Draw arrows to point to specific areas</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">⬜</span>
+                <div class="feature-content">
+                    <h4>Rectangle Tool</h4>
+                    <p>Draw rectangles to highlight areas</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">T</span>
+                <div class="feature-content">
+                    <h4>Text Tool</h4>
+                    <p>Add text annotations to the screenshot</p>
+                </div>
+            </div>
+        </div>
         <div class="note">
-            <p>All annotations can be drawn in different colors using the color picker tool.</p>
+            <p>All annotation tools support multiple colors and can be undone/redone.</p>
         </div>
     </div>
 
     <div class="section">
         <h2>Trello Integration</h2>
-        <p>Buggy automatically creates Trello cards with:</p>
+        <p>When a bug report is submitted, Buggy automatically creates a Trello card with:</p>
         <ul class="feature-list">
-            <li>Screenshot with annotations</li>
-            <li>Bug title and description</li>
-            <li>Category and priority</li>
-            <li>Reproduction steps</li>
-            <li>Technical details (URL, browser, timestamp)</li>
+            <div class="feature-item">
+                <span class="feature-icon">🖼️</span>
+                <div class="feature-content">
+                    <h4>Screenshot</h4>
+                    <p>Annotated screenshot attached to the card</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">📋</span>
+                <div class="feature-content">
+                    <h4>Details</h4>
+                    <p>Bug title, description, and reproduction steps</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">🔍</span>
+                <div class="feature-content">
+                    <h4>Technical Info</h4>
+                    <p>Browser details, URL, and timestamp</p>
+                </div>
+            </div>
         </ul>
-        <div class="warning">
-            <p>Make sure to keep your Trello API credentials secure and never expose them in client-side code.</p>
-        </div>
-    </div>
-
-    <div class="section">
-        <h2>Browser Support</h2>
-        <p>Buggy works in all modern browsers that support:</p>
-        <ul class="feature-list">
-            <li>HTML5 Canvas</li>
-            <li>CSS3</li>
-            <li>ES6+ JavaScript</li>
-        </ul>
-    </div>
-
-    <div class="section">
-        <h2>Troubleshooting</h2>
-        <h3>Common Issues</h3>
-        <ul class="feature-list">
-            <li><strong>Screenshot not capturing</strong>: Ensure html2canvas is properly loaded</li>
-            <li><strong>Annotations not saving</strong>: Check canvas size and permissions</li>
-            <li><strong>Trello integration failing</strong>: Verify API credentials and list ID</li>
-        </ul>
-    </div>
-
-    <div class="section">
-        <h2>Contributing</h2>
-        <p>Buggy is open to contributions! Feel free to:</p>
-        <ul class="feature-list">
-            <li>Report issues</li>
-            <li>Submit feature requests</li>
-            <li>Create pull requests</li>
-        </ul>
-    </div>
-
-    <div class="section">
-        <h2>CDN Usage</h2>
-        <p>Buggy can be loaded directly from jsDelivr CDN, which provides several benefits:</p>
-        <ul class="feature-list">
-            <li>Fast loading times worldwide</li>
-            <li>Automatic caching and compression</li>
-            <li>No need to host the script yourself</li>
-            <li>Version control support</li>
-        </ul>
-
-        <h3>Versioning Options</h3>
-        <p>You can load Buggy in different ways using jsDelivr:</p>
-
-        <div class="example">
-            <h4>Latest Version (from main branch)</h4>
-            <pre><code>&lt;script src="https://cdn.jsdelivr.net/gh/yourusername/buggy@main/client/src/buggy.js"&gt;&lt;/script&gt;</code></pre>
-        </div>
-
-        <div class="example">
-            <h4>Specific Version (using tags)</h4>
-            <pre><code>&lt;script src="https://cdn.jsdelivr.net/gh/yourusername/buggy@v1.0.0/client/src/buggy.js"&gt;&lt;/script&gt;</code></pre>
-        </div>
-
-        <div class="example">
-            <h4>Minified Version (recommended for production)</h4>
-            <pre><code>&lt;script src="https://cdn.jsdelivr.net/gh/yourusername/buggy@main/client/dist/buggy.min.js"&gt;&lt;/script&gt;</code></pre>
-        </div>
-
-        <div class="note">
-            <p>For production use, it's recommended to use minified versions and specific version tags instead of branch names to ensure stability.</p>
-        </div>
-
-        <h3>Creating Minified Version</h3>
-        <p>To create a minified version of Buggy:</p>
-        <pre><code># Install terser
-npm install -g terser
-
-# Minify the script
-terser client/src/buggy.js -o client/dist/buggy.min.js --compress --mangle</code></pre>
-
-        <div class="warning">
-            <p>Always test the minified version before deploying to production to ensure all functionality works as expected.</p>
-        </div>
     </div>
 </body>
 </html> 
