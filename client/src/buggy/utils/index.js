@@ -466,6 +466,17 @@ export function addStyles() {
       resize: vertical;
     }
 
+    .buggy-form-error {
+      background-color: #ffebee;
+      border: 1px solid #ffcdd2;
+      color: #c62828;
+      padding: 10px 15px;
+      margin-bottom: 15px;
+      border-radius: 4px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
     .buggy-form-preview {
       margin-top: 10px;
       border: 1px solid #eee;

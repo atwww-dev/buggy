@@ -60,19 +60,42 @@ export class BugReportForm {
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        const formData = new FormData(form);
-        const data = {
-          title: formData.get('title'),
-          description: formData.get('description'),
-          category: formData.get('category'),
-          priority: formData.get('priority'),
-          steps: formData.get('steps'),
-          screenshot: screenshot,
-          url: window.location.href,
-          browser: this.getBrowserInfo()
-        };
-
         try {
+          // Show a loading indicator or disable the submit button
+          const submitButton = form.querySelector('.buggy-submit');
+          const originalButtonText = submitButton.textContent;
+          submitButton.disabled = true;
+          submitButton.textContent = 'Submitting...';
+          
+          const formData = new FormData(form);
+          
+          // Prepare the screenshot data
+          let processedScreenshot = screenshot;
+          
+          // Convert screenshot to proper format if needed
+          if (screenshot) {
+            // If it's already a data URL, we need to strip the prefix to get just the base64 data
+            if (screenshot.startsWith('data:image/')) {
+              // Keep the screenshot as is - the server will extract the data properly
+            } else {
+              // Ensure it has the proper data URL prefix
+              processedScreenshot = `data:image/png;base64,${screenshot}`;
+            }
+          }
+          
+          // Create the data object with all form fields
+          const data = {
+            title: formData.get('title'),
+            description: formData.get('description'),
+            category: formData.get('category'),
+            priority: formData.get('priority'),
+            steps: formData.get('steps'),
+            screenshot: processedScreenshot,
+            url: window.location.href,
+            browser: this.getBrowserInfo()
+          };
+          
+          // Make the API request
           const response = await fetch(this.apiUrl, {
             method: 'POST',
             headers: {
@@ -80,16 +103,33 @@ export class BugReportForm {
             },
             body: JSON.stringify(data)
           });
-
+          
           if (!response.ok) {
-            throw new Error('Failed to submit bug report');
+            const errorText = await response.text();
+            throw new Error(`Failed to submit bug report: ${errorText}`);
           }
-
+          
           const result = await response.json();
           document.body.removeChild(container);
           resolve(result);
         } catch (error) {
           console.error('Error submitting bug report:', error);
+          
+          // Show error message to user
+          const errorMessage = document.createElement('div');
+          errorMessage.className = 'buggy-form-error';
+          errorMessage.textContent = error.message || 'Failed to submit bug report. Please try again.';
+          
+          // Insert at the top of the form
+          form.insertBefore(errorMessage, form.firstChild);
+          
+          // Re-enable the submit button
+          const submitButton = form.querySelector('.buggy-submit');
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Try Again';
+          }
+          
           reject(error);
         }
       });

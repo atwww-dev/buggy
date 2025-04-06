@@ -16,10 +16,15 @@ export interface TrelloCard {
 
 export interface ErrorResponse {
     success: false;
-    error: string;
+    message: string;
+    error?: string;
 }
 
 export interface SuccessResponse {
     success: true;
-    cardId?: string;
+    message: string;
+    data?: {
+        cardId: string;
+        cardUrl?: string;
+    };
 } 
