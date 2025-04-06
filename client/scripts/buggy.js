@@ -331,18 +331,29 @@ var BuggyExports = (() => {
         const cancelButton = container.querySelector(".buggy-cancel");
         form.addEventListener("submit", async (e) => {
           e.preventDefault();
-          const formData = new FormData(form);
-          const data = {
-            title: formData.get("title"),
-            description: formData.get("description"),
-            category: formData.get("category"),
-            priority: formData.get("priority"),
-            steps: formData.get("steps"),
-            screenshot,
-            url: window.location.href,
-            browser: this.getBrowserInfo()
-          };
           try {
+            const submitButton = form.querySelector(".buggy-submit");
+            const originalButtonText = submitButton.textContent;
+            submitButton.disabled = true;
+            submitButton.textContent = "Submitting...";
+            const formData = new FormData(form);
+            let processedScreenshot = screenshot;
+            if (screenshot) {
+              if (screenshot.startsWith("data:image/")) {
+              } else {
+                processedScreenshot = `data:image/png;base64,${screenshot}`;
+              }
+            }
+            const data = {
+              title: formData.get("title"),
+              description: formData.get("description"),
+              category: formData.get("category"),
+              priority: formData.get("priority"),
+              steps: formData.get("steps"),
+              screenshot: processedScreenshot,
+              url: window.location.href,
+              browser: this.getBrowserInfo()
+            };
             const response = await fetch(this.apiUrl, {
               method: "POST",
               headers: {
@@ -351,13 +362,23 @@ var BuggyExports = (() => {
               body: JSON.stringify(data)
             });
             if (!response.ok) {
-              throw new Error("Failed to submit bug report");
+              const errorText = await response.text();
+              throw new Error(`Failed to submit bug report: ${errorText}`);
             }
             const result = await response.json();
             document.body.removeChild(container);
             resolve(result);
           } catch (error) {
             console.error("Error submitting bug report:", error);
+            const errorMessage = document.createElement("div");
+            errorMessage.className = "buggy-form-error";
+            errorMessage.textContent = error.message || "Failed to submit bug report. Please try again.";
+            form.insertBefore(errorMessage, form.firstChild);
+            const submitButton = form.querySelector(".buggy-submit");
+            if (submitButton) {
+              submitButton.disabled = false;
+              submitButton.textContent = "Try Again";
+            }
             reject(error);
           }
         });
@@ -823,6 +844,17 @@ var BuggyExports = (() => {
     .buggy-form-group textarea {
       min-height: 100px;
       resize: vertical;
+    }
+
+    .buggy-form-error {
+      background-color: #ffebee;
+      border: 1px solid #ffcdd2;
+      color: #c62828;
+      padding: 10px 15px;
+      margin-bottom: 15px;
+      border-radius: 4px;
+      font-size: 14px;
+      line-height: 1.5;
     }
 
     .buggy-form-preview {
