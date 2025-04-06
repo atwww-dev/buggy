@@ -4,7 +4,7 @@ import { captureScreenshot, addStyles, showMessage } from '../utils';
 
 export class Buggy {
   constructor(config = {}) {
-    this.apiUrl = config.apiUrl || '/api/bugs';
+    this.apiUrl = config.apiUrl || '/api/feedback';
     this.buttonText = config.buttonText || 'Report Bug';
     this.buttonPosition = config.buttonPosition || { bottom: '20px', right: '20px' };
     

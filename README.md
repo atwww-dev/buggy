@@ -64,35 +64,74 @@ graph TD
 
 ## 🚀 Quick Start
 
-### Using CDN
+### Using CDN with Script Tag
 
 ```html
 <!-- Add to your HTML -->
-<script src="https://cdn.jsdelivr.net/npm/buggy@latest/dist/buggy.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/yourusername/buggy@main/client/src/buggy/index.js"></script>
 
 <script>
+  // When loaded via script tag, Buggy is available as a global variable
   const bugReporter = new Buggy({
-    apiUrl: 'your-server-url/api/bugs',
-    trelloKey: 'your-trello-key'
+    apiUrl: 'http://your-server:3000/api/feedback',
+    buttonText: 'Report Bug',
+    buttonPosition: { bottom: '20px', right: '20px' }
   });
   bugReporter.initialize();
 </script>
 ```
 
-### Using npm
+### Using npm with ES Modules
 
 ```bash
 npm install buggy
 ```
 
 ```javascript
+// Import the Buggy class
 import Buggy from 'buggy';
 
+// Create and initialize the bug reporter
 const bugReporter = new Buggy({
-  apiUrl: '/api/bugs',
-  trelloKey: 'your-trello-key'
+  apiUrl: 'http://your-server:3000/api/feedback',
+  buttonText: 'Report Bug',
+  buttonPosition: { bottom: '20px', right: '20px' }
 });
 bugReporter.initialize();
+```
+
+### Using with Next.js
+
+```jsx
+import { useEffect } from 'react';
+import Script from 'next/script';
+
+export default function YourComponent() {
+  useEffect(() => {
+    // Initialize Buggy when component mounts (client-side only)
+    if (typeof window !== 'undefined' && window.Buggy) {
+      const bugReporter = new Buggy({
+        apiUrl: 'http://your-server:3000/api/feedback',
+        buttonText: 'Report Bug',
+        buttonPosition: { bottom: '20px', right: '20px' }
+      });
+      
+      bugReporter.initialize();
+    }
+  }, []);
+
+  return (
+    <>
+      {/* Load Buggy script */}
+      <Script
+        src="https://cdn.jsdelivr.net/gh/yourusername/buggy@main/client/src/buggy/index.js"
+        strategy="beforeInteractive"
+      />
+      
+      {/* Your component content */}
+    </>
+  );
+}
 ```
 
 ## 🔧 Server Setup
@@ -152,15 +191,13 @@ import Buggy from 'buggy';
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| apiUrl | string | '/api/bugs' | Server endpoint for bug reports |
-| trelloKey | string | - | Your Trello API key |
-| buttonText | string | 'Report Bug' | Custom button text |
+| apiUrl | string | '/api/feedback' | Server endpoint for bug reports |
+| buttonText | string | 'Report Bug' | Text displayed on the button |
 | buttonPosition | object | `{ bottom: '20px', right: '20px' }` | Button positioning |
-| theme | string | 'light' | UI theme ('light' or 'dark') |
 
 ## 📡 API Reference
 
-### POST /api/bugs
+### POST /api/feedback
 
 Creates a new bug report and Trello card.
 
@@ -169,13 +206,12 @@ Creates a new bug report and Trello card.
 {
   "title": "Bug title",
   "description": "Detailed bug description",
-  "severity": "low|medium|high|critical",
-  "screenshot": "base64_encoded_image_data",
-  "metadata": {
-    "browser": "Chrome 91.0",
-    "os": "Windows 10",
-    "url": "https://example.com/page"
-  }
+  "category": "ui|functionality|performance|other",
+  "priority": "low|medium|high|critical",
+  "steps": "Steps to reproduce the bug",
+  "screenshot": "base64_encoded_image",
+  "url": "Current page URL",
+  "browser": "Browser information"
 }
 ```
 
@@ -183,8 +219,7 @@ Creates a new bug report and Trello card.
 ```json
 {
   "success": true,
-  "cardId": "trello_card_id",
-  "cardUrl": "https://trello.com/c/card_url"
+  "cardId": "trello_card_id"
 }
 ```
 

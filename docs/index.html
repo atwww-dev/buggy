@@ -106,12 +106,32 @@
             margin: 20px 0;
             border: 1px solid var(--border-color);
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            position: relative;
         }
 
         pre code {
             background: transparent;
             padding: 0;
             color: var(--text-color);
+        }
+
+        .copy-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            font-size: 12px;
+            cursor: pointer;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+        
+        .copy-button:hover {
+            opacity: 1;
         }
 
         .section {
@@ -250,15 +270,66 @@
     <div class="section">
         <h2>Quick Start</h2>
         <div class="example">
-            <h3>Client-side Setup</h3>
-            <pre><code>&lt;script src="https://cdn.jsdelivr.net/gh/yourusername/buggy@main/client/src/buggy.js"&gt;&lt;/script&gt;
+            <h3>Usage with Script Tag</h3>
+            <pre><code>&lt;script src="https://cdn.jsdelivr.net/gh/yourusername/buggy@main/client/src/buggy/index.js"&gt;&lt;/script&gt;
 &lt;script&gt;
+  // When loaded via script tag, Buggy is available as a global variable
   const bugReporter = new Buggy({
     apiUrl: 'http://your-server:3000/api/feedback',
     buttonText: 'Report Bug',
-    buttonPosition: 'bottom-right'
+    buttonPosition: { bottom: '20px', right: '20px' }
   });
+
+  bugReporter.initialize();
 &lt;/script&gt;</code></pre>
+        </div>
+
+        <div class="example">
+            <h3>Usage with ES Modules</h3>
+            <pre><code>// Import the Buggy class
+import Buggy from 'buggy';
+
+// Create and initialize the bug reporter
+const bugReporter = new Buggy({
+  apiUrl: 'http://your-server:3000/api/feedback',
+  buttonText: 'Report Bug',
+  buttonPosition: { bottom: '20px', right: '20px' }
+});
+
+bugReporter.initialize();</code></pre>
+        </div>
+
+        <div class="example">
+            <h3>Usage with Next.js</h3>
+            <pre><code>import { useEffect } from 'react';
+import Script from 'next/script';
+
+export default function YourComponent() {
+  useEffect(() => {
+    // Initialize Buggy when component mounts (client-side only)
+    if (typeof window !== 'undefined' && window.Buggy) {
+      const bugReporter = new Buggy({
+        apiUrl: 'http://your-server:3000/api/feedback',
+        buttonText: 'Report Bug',
+        buttonPosition: { bottom: '20px', right: '20px' }
+      });
+      
+      bugReporter.initialize();
+    }
+  }, []);
+
+  return (
+    &lt;&gt;
+      {/* Load Buggy script */}
+      &lt;Script
+        src="https://cdn.jsdelivr.net/gh/yourusername/buggy@main/client/src/buggy/index.js"
+        strategy="beforeInteractive"
+      /&gt;
+      
+      {/* Your component content */}
+    &lt;/&gt;
+  );
+}</code></pre>
         </div>
     </div>
 
@@ -343,12 +414,12 @@ TRELLO_LIST_ID=your_list_id_here</code></pre>
         <pre><code>{
   "title": "Bug title",
   "description": "Detailed bug description",
+  "category": "ui|functionality|performance|other",
+  "priority": "low|medium|high|critical",
+  "steps": "Steps to reproduce the bug",
   "screenshot": "base64_encoded_image",
-  "metadata": {
-    "url": "Current page URL",
-    "browser": "Browser information",
-    "timestamp": "ISO timestamp"
-  }
+  "url": "Current page URL",
+  "browser": "Browser information"
 }</code></pre>
     </div>
 
@@ -375,21 +446,9 @@ TRELLO_LIST_ID=your_list_id_here</code></pre>
             </tr>
             <tr>
                 <td>buttonPosition</td>
-                <td>string</td>
-                <td>bottom-right</td>
-                <td>Position of the button (top-left, top-right, bottom-left, bottom-right)</td>
-            </tr>
-            <tr>
-                <td>categories</td>
-                <td>string[]</td>
-                <td>[]</td>
-                <td>Custom categories for bug classification</td>
-            </tr>
-            <tr>
-                <td>priorities</td>
-                <td>string[]</td>
-                <td>[]</td>
-                <td>Custom priority levels</td>
+                <td>object</td>
+                <td>{ bottom: '20px', right: '20px' }</td>
+                <td>Position of the button on the page</td>
             </tr>
         </table>
     </div>
@@ -458,5 +517,36 @@ TRELLO_LIST_ID=your_list_id_here</code></pre>
             </div>
         </ul>
     </div>
+
+    <script>
+        // Add copy buttons to all code blocks
+        document.addEventListener('DOMContentLoaded', function() {
+            const codeBlocks = document.querySelectorAll('pre');
+            
+            codeBlocks.forEach(block => {
+                const copyButton = document.createElement('button');
+                copyButton.className = 'copy-button';
+                copyButton.textContent = 'Copy';
+                
+                copyButton.addEventListener('click', function() {
+                    const code = block.querySelector('code').innerText;
+                    navigator.clipboard.writeText(code).then(() => {
+                        copyButton.textContent = 'Copied!';
+                        setTimeout(() => {
+                            copyButton.textContent = 'Copy';
+                        }, 2000);
+                    }).catch(err => {
+                        console.error('Failed to copy: ', err);
+                        copyButton.textContent = 'Failed';
+                        setTimeout(() => {
+                            copyButton.textContent = 'Copy';
+                        }, 2000);
+                    });
+                });
+                
+                block.appendChild(copyButton);
+            });
+        });
+    </script>
 </body>
 </html> 
